@@ -1,0 +1,33 @@
+export const FACTORY_ABI = [
+  'function createFundraiser(string name, string description, uint256 goalAmount, uint256 deadline) returns (address)',
+  'function getFundraisers() view returns (address[])',
+  'function getFundraiserCount() view returns (uint256)',
+  'function fundraisers(uint256) view returns (address)',
+  'event FundraiserCreated(address indexed fundraiser, address indexed creator, string name, uint256 goalAmount, uint256 deadline)',
+];
+
+export const FUNDRAISER_ABI = [
+  'function name() view returns (string)',
+  'function description() view returns (string)',
+  'function creator() view returns (address)',
+  'function goalAmount() view returns (uint256)',
+  'function deadline() view returns (uint256)',
+  'function totalRaised() view returns (uint256)',
+  'function withdrawn() view returns (bool)',
+  'function donations(address) view returns (uint256)',
+  'function usdc() view returns (address)',
+  'function isGoalMet() view returns (bool)',
+  'function isExpired() view returns (bool)',
+  'function donate(uint256 amount)',
+  'function withdraw()',
+  'function claimRefund()',
+  'event Donated(address indexed donor, uint256 amount)',
+  'event Withdrawn(address indexed creator, uint256 amount)',
+  'event RefundClaimed(address indexed donor, uint256 amount)',
+];
+
+export const ERC20_ABI = [
+  'function approve(address spender, uint256 amount) returns (bool)',
+  'function allowance(address owner, address spender) view returns (uint256)',
+  'function balanceOf(address) view returns (uint256)',
+];

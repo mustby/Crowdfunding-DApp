@@ -14,15 +14,18 @@ export const FUNDRAISER_ABI = [
   'function deadline() view returns (uint256)',
   'function totalRaised() view returns (uint256)',
   'function withdrawn() view returns (bool)',
+  'function cancelled() view returns (bool)',
   'function donations(address) view returns (uint256)',
   'function usdc() view returns (address)',
   'function isGoalMet() view returns (bool)',
   'function isExpired() view returns (bool)',
   'function donate(uint256 amount)',
   'function withdraw()',
+  'function cancel()',
   'function claimRefund()',
   'event Donated(address indexed donor, uint256 amount)',
   'event Withdrawn(address indexed creator, uint256 amount)',
+  'event Cancelled(address indexed creator)',
   'event RefundClaimed(address indexed donor, uint256 amount)',
 ];
 

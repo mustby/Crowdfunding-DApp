@@ -179,6 +179,113 @@ contract FundraiserTest is Test {
     }
 
     // -------------------------------------------------------------------------
+    // Cancellation
+    // -------------------------------------------------------------------------
+
+    function test_CreatorCancel() public {
+        vm.prank(creator);
+        fundraiser.cancel();
+
+        assertTrue(fundraiser.cancelled());
+    }
+
+    function test_Cancel_UnlocksRefundBeforeDeadline() public {
+        vm.prank(donor1);
+        fundraiser.donate(500e6);
+
+        vm.prank(creator);
+        fundraiser.cancel();
+
+        uint256 before = usdc.balanceOf(donor1);
+        vm.prank(donor1);
+        fundraiser.claimRefund();
+
+        assertEq(usdc.balanceOf(donor1), before + 500e6);
+        assertEq(fundraiser.donations(donor1), 0);
+    }
+
+    function test_Cancel_MultipleRefunds() public {
+        vm.prank(donor1);
+        fundraiser.donate(300e6);
+        vm.prank(donor2);
+        fundraiser.donate(200e6);
+
+        vm.prank(creator);
+        fundraiser.cancel();
+
+        vm.prank(donor1);
+        fundraiser.claimRefund();
+        vm.prank(donor2);
+        fundraiser.claimRefund();
+
+        assertEq(usdc.balanceOf(address(fundraiser)), 0);
+    }
+
+    function test_Cancel_AfterGoalMet() public {
+        vm.prank(donor1);
+        fundraiser.donate(GOAL);
+
+        vm.prank(creator);
+        fundraiser.cancel();
+
+        assertTrue(fundraiser.cancelled());
+
+        uint256 before = usdc.balanceOf(donor1);
+        vm.prank(donor1);
+        fundraiser.claimRefund();
+
+        assertEq(usdc.balanceOf(donor1), before + GOAL);
+    }
+
+    function test_RevertCancel_NotCreator() public {
+        vm.prank(donor1);
+        vm.expectRevert(Fundraiser.NotCreator.selector);
+        fundraiser.cancel();
+    }
+
+    function test_RevertCancel_AlreadyCancelled() public {
+        vm.prank(creator);
+        fundraiser.cancel();
+
+        vm.prank(creator);
+        vm.expectRevert(Fundraiser.AlreadyCancelled.selector);
+        fundraiser.cancel();
+    }
+
+    function test_RevertCancel_AlreadyWithdrawn() public {
+        vm.prank(donor1);
+        fundraiser.donate(GOAL);
+
+        vm.prank(creator);
+        fundraiser.withdraw();
+
+        vm.prank(creator);
+        vm.expectRevert(Fundraiser.AlreadyWithdrawn.selector);
+        fundraiser.cancel();
+    }
+
+    function test_RevertDonate_Cancelled() public {
+        vm.prank(creator);
+        fundraiser.cancel();
+
+        vm.prank(donor1);
+        vm.expectRevert(Fundraiser.CampaignCancelled.selector);
+        fundraiser.donate(500e6);
+    }
+
+    function test_RevertWithdraw_Cancelled() public {
+        vm.prank(donor1);
+        fundraiser.donate(GOAL);
+
+        vm.prank(creator);
+        fundraiser.cancel();
+
+        vm.prank(creator);
+        vm.expectRevert(Fundraiser.CampaignCancelled.selector);
+        fundraiser.withdraw();
+    }
+
+    // -------------------------------------------------------------------------
     // Factory
     // -------------------------------------------------------------------------
 

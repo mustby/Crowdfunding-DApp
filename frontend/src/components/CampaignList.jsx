@@ -7,7 +7,7 @@ import CampaignCard from './CampaignCard';
 
 async function fetchCampaignData(address, provider) {
   const c = new ethers.Contract(address, FUNDRAISER_ABI, provider);
-  const [name, description, creator, goalAmount, deadline, totalRaised, withdrawn, goalMet, expired] =
+  const [name, description, creator, goalAmount, deadline, totalRaised, withdrawn, cancelled, goalMet, expired] =
     await Promise.all([
       c.name(),
       c.description(),
@@ -16,10 +16,11 @@ async function fetchCampaignData(address, provider) {
       c.deadline(),
       c.totalRaised(),
       c.withdrawn(),
+      c.cancelled(),
       c.isGoalMet(),
       c.isExpired(),
     ]);
-  return { address, name, description, creator, goalAmount, deadline, totalRaised, withdrawn, goalMet, expired };
+  return { address, name, description, creator, goalAmount, deadline, totalRaised, withdrawn, cancelled, goalMet, expired };
 }
 
 export default function CampaignList({ onSelect }) {

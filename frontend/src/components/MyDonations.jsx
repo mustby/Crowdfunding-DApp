@@ -25,15 +25,15 @@ export default function MyDonations({ onSelect }) {
           const c = new ethers.Contract(addr, FUNDRAISER_ABI, provider);
           const [
             donation, name, description, creator,
-            goalAmount, deadline, totalRaised, withdrawn, goalMet, expired,
+            goalAmount, deadline, totalRaised, withdrawn, cancelled, goalMet, expired,
           ] = await Promise.all([
             c.donations(account),
             c.name(), c.description(), c.creator(),
             c.goalAmount(), c.deadline(), c.totalRaised(),
-            c.withdrawn(), c.isGoalMet(), c.isExpired(),
+            c.withdrawn(), c.cancelled(), c.isGoalMet(), c.isExpired(),
           ]);
           if (donation === 0n) return null;
-          return { address: addr, name, description, creator, goalAmount, deadline, totalRaised, withdrawn, goalMet, expired };
+          return { address: addr, name, description, creator, goalAmount, deadline, totalRaised, withdrawn, cancelled, goalMet, expired };
         })
       );
 

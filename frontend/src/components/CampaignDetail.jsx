@@ -19,12 +19,12 @@ export default function CampaignDetail({ address, onBack }) {
       const c = new ethers.Contract(address, FUNDRAISER_ABI, provider);
       const [
         name, description, creator, goalAmount, deadline,
-        totalRaised, withdrawn, goalMet, expired, usdcAddr,
+        totalRaised, withdrawn, cancelled, goalMet, expired, usdcAddr,
       ] = await Promise.all([
         c.name(), c.description(), c.creator(), c.goalAmount(), c.deadline(),
-        c.totalRaised(), c.withdrawn(), c.isGoalMet(), c.isExpired(), c.usdc(),
+        c.totalRaised(), c.withdrawn(), c.cancelled(), c.isGoalMet(), c.isExpired(), c.usdc(),
       ]);
-      setCampaign({ address, name, description, creator, goalAmount, deadline, totalRaised, withdrawn, goalMet, expired, usdcAddr });
+      setCampaign({ address, name, description, creator, goalAmount, deadline, totalRaised, withdrawn, cancelled, goalMet, expired, usdcAddr });
 
       if (account) {
         setMyDonation(await c.donations(account));
@@ -91,6 +91,26 @@ export default function CampaignDetail({ address, onBack }) {
     }
   }
 
+  async function handleCancel() {
+    if (!signer) return;
+    setLoading(true);
+    setTxStatus(null);
+    setError(null);
+    try {
+      const fundraiser = new ethers.Contract(address, FUNDRAISER_ABI, signer);
+      setTxStatus('Cancelling campaign... (confirm in MetaMask)');
+      const tx = await fundraiser.cancel();
+      await tx.wait();
+      setTxStatus('Campaign cancelled. Donors can now claim refunds.');
+      await loadCampaign();
+    } catch (err) {
+      setError(err.reason ?? err.message);
+      setTxStatus(null);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function handleRefund() {
     if (!signer) return;
     setLoading(true);
@@ -121,9 +141,10 @@ export default function CampaignDetail({ address, onBack }) {
 
   const pct = progressPercent(campaign.totalRaised, campaign.goalAmount);
   const isCreator = account?.toLowerCase() === campaign.creator.toLowerCase();
-  const canWithdraw = isCreator && campaign.goalMet && !campaign.withdrawn;
-  const canRefund = myDonation > 0n && campaign.expired && !campaign.goalMet;
-  const canDonate = !campaign.expired && !campaign.withdrawn;
+  const canDonate = !campaign.expired && !campaign.withdrawn && !campaign.cancelled;
+  const canWithdraw = isCreator && campaign.goalMet && !campaign.withdrawn && !campaign.cancelled;
+  const canCancel = isCreator && !campaign.cancelled && !campaign.withdrawn;
+  const canRefund = myDonation > 0n && (campaign.cancelled || (campaign.expired && !campaign.goalMet));
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -169,12 +190,8 @@ export default function CampaignDetail({ address, onBack }) {
         )}
 
         {/* Status feedback */}
-        {txStatus && (
-          <p className="text-sm text-indigo-600 font-medium">{txStatus}</p>
-        )}
-        {error && (
-          <p className="text-sm text-red-600">{error}</p>
-        )}
+        {txStatus && <p className="text-sm text-indigo-600 font-medium">{txStatus}</p>}
+        {error && <p className="text-sm text-red-600">{error}</p>}
 
         {/* Donate form */}
         {canDonate && account && (
@@ -224,6 +241,24 @@ export default function CampaignDetail({ address, onBack }) {
           >
             {loading ? 'Claiming...' : `Claim Refund ($${formatUSDC(myDonation)})`}
           </button>
+        )}
+
+        {/* Creator cancel */}
+        {canCancel && (
+          <button
+            onClick={handleCancel}
+            disabled={loading}
+            className="w-full bg-white hover:bg-red-50 disabled:opacity-50 text-red-600 border border-red-300 font-medium py-2.5 rounded-lg transition text-sm"
+          >
+            {loading ? 'Cancelling...' : 'Cancel Campaign'}
+          </button>
+        )}
+
+        {/* Cancelled state */}
+        {campaign.cancelled && (
+          <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700 text-center">
+            This campaign was cancelled by the creator. Donors can claim their refunds above.
+          </div>
         )}
 
         {/* Funded / withdrawn state */}

@@ -1,6 +1,12 @@
 import { formatUSDC, formatDeadline, timeRemaining, progressPercent } from '../utils/format';
 
-function StatusBadge({ goalMet, expired, withdrawn }) {
+function StatusBadge({ goalMet, expired, withdrawn, cancelled }) {
+  if (cancelled)
+    return (
+      <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded-full whitespace-nowrap">
+        Cancelled
+      </span>
+    );
   if (withdrawn)
     return (
       <span className="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-500 rounded-full whitespace-nowrap">
@@ -27,7 +33,7 @@ function StatusBadge({ goalMet, expired, withdrawn }) {
 }
 
 export default function CampaignCard({ campaign, onClick }) {
-  const { name, description, goalAmount, totalRaised, deadline, goalMet, expired, withdrawn } =
+  const { name, description, goalAmount, totalRaised, deadline, goalMet, expired, withdrawn, cancelled } =
     campaign;
   const pct = progressPercent(totalRaised, goalAmount);
 
@@ -38,7 +44,7 @@ export default function CampaignCard({ campaign, onClick }) {
     >
       <div className="flex items-start justify-between gap-2">
         <h3 className="font-semibold text-gray-900 leading-tight">{name}</h3>
-        <StatusBadge goalMet={goalMet} expired={expired} withdrawn={withdrawn} />
+        <StatusBadge goalMet={goalMet} expired={expired} withdrawn={withdrawn} cancelled={cancelled} />
       </div>
 
       <p className="text-sm text-gray-500 line-clamp-2 flex-1">{description}</p>

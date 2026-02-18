@@ -25,14 +25,14 @@ export default function MyCampaigns({ onSelect }) {
           const c = new ethers.Contract(addr, FUNDRAISER_ABI, provider);
           const [
             creator, name, description,
-            goalAmount, deadline, totalRaised, withdrawn, goalMet, expired,
+            goalAmount, deadline, totalRaised, withdrawn, cancelled, goalMet, expired,
           ] = await Promise.all([
             c.creator(), c.name(), c.description(),
             c.goalAmount(), c.deadline(), c.totalRaised(),
-            c.withdrawn(), c.isGoalMet(), c.isExpired(),
+            c.withdrawn(), c.cancelled(), c.isGoalMet(), c.isExpired(),
           ]);
           if (creator.toLowerCase() !== account.toLowerCase()) return null;
-          return { address: addr, name, description, creator, goalAmount, deadline, totalRaised, withdrawn, goalMet, expired };
+          return { address: addr, name, description, creator, goalAmount, deadline, totalRaised, withdrawn, cancelled, goalMet, expired };
         })
       );
 

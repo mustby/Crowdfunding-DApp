@@ -10,9 +10,11 @@ interface IERC20 {
 ///         Deployed by FundraiserFactory — one contract per campaign.
 ///
 ///         Lifecycle:
-///           - Donors call donate() before the deadline.
-///           - If totalRaised >= goalAmount, creator can withdraw() at any time.
+///           - Donors call donate() before the deadline (blocked if cancelled).
+///           - If totalRaised >= goalAmount, creator can withdraw() at any time (blocked if cancelled).
 ///           - If deadline passes and goal was NOT met, donors can claimRefund().
+///           - Creator can cancel() at any time before withdrawing, which immediately
+///             unlocks claimRefund() for all donors regardless of deadline or goal.
 contract Fundraiser {
     // -------------------------------------------------------------------------
     // State
@@ -28,6 +30,7 @@ contract Fundraiser {
 
     uint256 public totalRaised;
     bool public withdrawn;
+    bool public cancelled;
 
     mapping(address => uint256) public donations;
 
@@ -38,6 +41,7 @@ contract Fundraiser {
     event Donated(address indexed donor, uint256 amount);
     event Withdrawn(address indexed creator, uint256 amount);
     event RefundClaimed(address indexed donor, uint256 amount);
+    event Cancelled(address indexed creator);
 
     // -------------------------------------------------------------------------
     // Errors
@@ -49,6 +53,8 @@ contract Fundraiser {
     error DeadlinePassed();
     error DeadlineNotPassed();
     error AlreadyWithdrawn();
+    error AlreadyCancelled();
+    error CampaignCancelled();
     error NoDonationToRefund();
     error InvalidGoal();
     error InvalidDeadline();
@@ -83,6 +89,7 @@ contract Fundraiser {
     /// @notice Donate USDC to this campaign. Caller must approve this contract first.
     function donate(uint256 amount) external {
         if (block.timestamp >= deadline) revert DeadlinePassed();
+        if (cancelled) revert CampaignCancelled();
 
         donations[msg.sender] += amount;
         totalRaised += amount;
@@ -94,9 +101,10 @@ contract Fundraiser {
     }
 
     /// @notice Creator withdraws all funds once the goal is met.
-    ///         Can be called at any time after the goal is reached.
+    ///         Can be called at any time after the goal is reached, unless cancelled.
     function withdraw() external {
         if (msg.sender != creator) revert NotCreator();
+        if (cancelled) revert CampaignCancelled();
         if (totalRaised < goalAmount) revert GoalNotMet();
         if (withdrawn) revert AlreadyWithdrawn();
 
@@ -108,10 +116,25 @@ contract Fundraiser {
         emit Withdrawn(creator, amount);
     }
 
-    /// @notice Donor reclaims their funds if deadline passed and goal was not met.
+    /// @notice Creator cancels the campaign, immediately unlocking refunds for all donors.
+    ///         Can be called at any time before withdrawal.
+    function cancel() external {
+        if (msg.sender != creator) revert NotCreator();
+        if (cancelled) revert AlreadyCancelled();
+        if (withdrawn) revert AlreadyWithdrawn();
+
+        cancelled = true;
+
+        emit Cancelled(creator);
+    }
+
+    /// @notice Donor reclaims their funds.
+    ///         Allowed if: campaign is cancelled, OR deadline passed and goal was not met.
     function claimRefund() external {
-        if (block.timestamp < deadline) revert DeadlineNotPassed();
-        if (totalRaised >= goalAmount) revert GoalAlreadyMet();
+        if (!cancelled) {
+            if (block.timestamp < deadline) revert DeadlineNotPassed();
+            if (totalRaised >= goalAmount) revert GoalAlreadyMet();
+        }
 
         uint256 amount = donations[msg.sender];
         if (amount == 0) revert NoDonationToRefund();

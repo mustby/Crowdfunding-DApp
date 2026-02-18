@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crowdfund DApp — Mock UI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <!-- ── HEADER ─────────────────────────────────────────────── -->
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-10">
+    <div class="max-w-5xl mx-auto px-4">
+      <div class="flex items-center justify-between h-16">
+        <span class="text-xl font-bold text-indigo-600 cursor-pointer" onclick="goHome()">
+          Crowdfund DApp
+        </span>
+        <!-- Disconnected: Connect button -->
+        <button id="btn-connect" onclick="connectWallet()"
+          class="px-4 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition">
+          Connect Wallet
+        </button>
+        <!-- Connected: wallet address -->
+        <button id="btn-address" onclick="disconnectWallet()"
+          class="hidden px-4 py-2 text-sm font-medium bg-gray-100 hover:bg-gray-200 rounded-lg transition text-gray-700">
+          0x1A2b...9F3c
+        </button>
+      </div>
+
+      <!-- Nav — hidden until connected -->
+      <nav id="nav" class="hidden flex gap-6">
+        <button onclick="switchTab('browse')"  class="nav-btn pb-3 text-sm font-medium border-b-2">Browse Campaigns</button>
+        <button onclick="switchTab('create')"  class="nav-btn pb-3 text-sm font-medium border-b-2">Create Campaign</button>
+        <button onclick="switchTab('mine')"    class="nav-btn pb-3 text-sm font-medium border-b-2">My Campaigns</button>
+        <button onclick="switchTab('donated')" class="nav-btn pb-3 text-sm font-medium border-b-2">My Donations</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ── MAIN ──────────────────────────────────────────────── -->
+  <main id="main">
+
+    <!-- ═══════════════════════════════════════════════════════
+         LANDING PAGE
+    ════════════════════════════════════════════════════════════ -->
+    <div id="page-landing">
+
+      <!-- Hero -->
+      <section class="bg-white border-b border-gray-100">
+        <div class="max-w-3xl mx-auto px-4 py-20 text-center">
+          <span class="inline-block bg-indigo-50 text-indigo-600 text-xs font-semibold px-3 py-1 rounded-full mb-4 tracking-wide uppercase">
+            Powered by USDC on Ethereum
+          </span>
+          <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-900 leading-tight mb-4">
+            Decentralized Crowdfunding,<br class="hidden sm:block" /> Built on Trust
+          </h1>
+          <p class="text-lg text-gray-500 mb-8 max-w-xl mx-auto">
+            Create campaigns, donate with USDC, and get refunded automatically if a goal isn't met —
+            no middlemen, no hidden fees, fully on-chain.
+          </p>
+          <button onclick="connectWallet()"
+            class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-8 py-3 rounded-xl text-base transition shadow-sm">
+            Connect Wallet to Get Started
+          </button>
+          <p class="text-xs text-gray-400 mt-3">Requires MetaMask · Sepolia Testnet</p>
+        </div>
+      </section>
+
+      <!-- How it works -->
+      <section class="max-w-5xl mx-auto px-4 py-16">
+        <h2 class="text-2xl font-bold text-gray-900 text-center mb-2">How It Works</h2>
+        <p class="text-gray-500 text-center mb-10 text-sm">Four simple steps from idea to funding.</p>
+
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+
+          <div class="bg-white rounded-xl border border-gray-200 p-6 flex flex-col gap-3">
+            <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-xl">🚀</div>
+            <div>
+              <p class="text-xs font-semibold text-indigo-600 uppercase tracking-wide mb-1">Step 1</p>
+              <h3 class="font-semibold text-gray-900 mb-1">Create a Campaign</h3>
+              <p class="text-sm text-gray-500">Set your project name, description, USDC goal, and a funding deadline.</p>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl border border-gray-200 p-6 flex flex-col gap-3">
+            <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-xl">💸</div>
+            <div>
+              <p class="text-xs font-semibold text-indigo-600 uppercase tracking-wide mb-1">Step 2</p>
+              <h3 class="font-semibold text-gray-900 mb-1">Donate with USDC</h3>
+              <p class="text-sm text-gray-500">Browse active campaigns and donate any amount of USDC directly from your wallet.</p>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl border border-gray-200 p-6 flex flex-col gap-3">
+            <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-xl">📈</div>
+            <div>
+              <p class="text-xs font-semibold text-indigo-600 uppercase tracking-wide mb-1">Step 3</p>
+              <h3 class="font-semibold text-gray-900 mb-1">Track Progress</h3>
+              <p class="text-sm text-gray-500">Watch campaigns grow in real time. Every donation is recorded on-chain and fully transparent.</p>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl border border-gray-200 p-6 flex flex-col gap-3">
+            <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-xl">✅</div>
+            <div>
+              <p class="text-xs font-semibold text-indigo-600 uppercase tracking-wide mb-1">Step 4</p>
+              <h3 class="font-semibold text-gray-900 mb-1">Withdraw or Get Refunded</h3>
+              <p class="text-sm text-gray-500">Creators withdraw when goals are met. Donors are automatically refunded if a campaign expires short of its goal.</p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Why trustless -->
+      <section class="bg-white border-t border-gray-100">
+        <div class="max-w-5xl mx-auto px-4 py-14 grid gap-6 sm:grid-cols-3 text-center">
+          <div class="flex flex-col items-center gap-2">
+            <span class="text-3xl">🔒</span>
+            <h3 class="font-semibold text-gray-900">Non-Custodial</h3>
+            <p class="text-sm text-gray-500">Funds are held in smart contracts — never by us. Only the contract rules decide who gets paid.</p>
+          </div>
+          <div class="flex flex-col items-center gap-2">
+            <span class="text-3xl">⚡</span>
+            <h3 class="font-semibold text-gray-900">Instant Refunds</h3>
+            <p class="text-sm text-gray-500">If a campaign doesn't hit its goal by the deadline, donors can claim refunds immediately — no forms, no waiting.</p>
+          </div>
+          <div class="flex flex-col items-center gap-2">
+            <span class="text-3xl">🌐</span>
+            <h3 class="font-semibold text-gray-900">Fully On-Chain</h3>
+            <p class="text-sm text-gray-500">Every campaign, donation, and withdrawal is recorded on Ethereum. Anyone can verify the history at any time.</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+    <!-- end landing -->
+
+    <!-- ═══════════════════════════════════════════════════════
+         DASHBOARD (hidden until connected)
+    ════════════════════════════════════════════════════════════ -->
+    <div id="page-dashboard" class="hidden max-w-5xl mx-auto px-4 py-8">
+
+      <!-- BROWSE CAMPAIGNS -->
+      <div id="tab-browse">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-bold text-gray-900">Campaigns</h2>
+          <button class="text-sm text-indigo-600 hover:underline">Refresh</button>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
+          <div onclick="showDetail('solar')" class="bg-white rounded-xl border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-md transition cursor-pointer flex flex-col gap-3">
+            <div class="flex items-start justify-between gap-2">
+              <h3 class="font-semibold text-gray-900 leading-tight">Solar Panel Community Project</h3>
+              <span class="px-2 py-0.5 text-xs font-medium bg-indigo-100 text-indigo-700 rounded-full whitespace-nowrap">Active</span>
+            </div>
+            <p class="text-sm text-gray-500 line-clamp-2">Funding rooftop solar panels for the Eastside Community Center to cut energy costs and go green.</p>
+            <div>
+              <div class="flex justify-between text-xs text-gray-500 mb-1"><span>$6,500.00 raised</span><span>65%</span></div>
+              <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full rounded-full bg-indigo-500" style="width:65%"></div>
+              </div>
+            </div>
+            <div class="flex justify-between text-xs text-gray-400"><span>Goal: $10,000.00</span><span>12d 3h left</span></div>
+          </div>
+
+          <div onclick="showDetail('oss')" class="bg-white rounded-xl border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-md transition cursor-pointer flex flex-col gap-3">
+            <div class="flex items-start justify-between gap-2">
+              <h3 class="font-semibold text-gray-900 leading-tight">Open Source Dev Tooling</h3>
+              <span class="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full whitespace-nowrap">Goal Met</span>
+            </div>
+            <p class="text-sm text-gray-500 line-clamp-2">Building a suite of open-source developer tools for Solidity smart contract testing and deployment automation.</p>
+            <div>
+              <div class="flex justify-between text-xs text-gray-500 mb-1"><span>$5,340.00 raised</span><span>107%</span></div>
+              <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full rounded-full bg-green-500" style="width:100%"></div>
+              </div>
+            </div>
+            <div class="flex justify-between text-xs text-gray-400"><span>Goal: $5,000.00</span><span>5d left</span></div>
+          </div>
+
+          <div class="bg-white rounded-xl border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-md transition cursor-pointer flex flex-col gap-3">
+            <div class="flex items-start justify-between gap-2">
+              <h3 class="font-semibold text-gray-900 leading-tight">Local Food Bank Supply Drive</h3>
+              <span class="px-2 py-0.5 text-xs font-medium bg-indigo-100 text-indigo-700 rounded-full whitespace-nowrap">Active</span>
+            </div>
+            <p class="text-sm text-gray-500 line-clamp-2">Restocking the downtown food bank for winter. All funds go directly to purchasing non-perishable goods.</p>
+            <div>
+              <div class="flex justify-between text-xs text-gray-500 mb-1"><span>$750.00 raised</span><span>30%</span></div>
+              <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full rounded-full bg-indigo-500" style="width:30%"></div>
+              </div>
+            </div>
+            <div class="flex justify-between text-xs text-gray-400"><span>Goal: $2,500.00</span><span>20d left</span></div>
+          </div>
+
+          <div class="bg-white rounded-xl border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-md transition cursor-pointer flex flex-col gap-3">
+            <div class="flex items-start justify-between gap-2">
+              <h3 class="font-semibold text-gray-900 leading-tight">NFT Art Exhibition</h3>
+              <span class="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-600 rounded-full whitespace-nowrap">Expired</span>
+            </div>
+            <p class="text-sm text-gray-500 line-clamp-2">A physical + digital art show featuring 20 emerging Web3 artists. Venue, printing, and logistics costs.</p>
+            <div>
+              <div class="flex justify-between text-xs text-gray-500 mb-1"><span>$3,375.00 raised</span><span>45%</span></div>
+              <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full rounded-full bg-indigo-500" style="width:45%"></div>
+              </div>
+            </div>
+            <div class="flex justify-between text-xs text-gray-400"><span>Goal: $7,500.00</span><span>Ended Jan 31, 2026</span></div>
+          </div>
+
+          <div class="bg-white rounded-xl border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-md transition cursor-pointer flex flex-col gap-3">
+            <div class="flex items-start justify-between gap-2">
+              <h3 class="font-semibold text-gray-900 leading-tight">Web3 Education Platform</h3>
+              <span class="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-500 rounded-full whitespace-nowrap">Funded</span>
+            </div>
+            <p class="text-sm text-gray-500 line-clamp-2">An interactive platform teaching Solidity and DApp development to beginners with hands-on projects.</p>
+            <div>
+              <div class="flex justify-between text-xs text-gray-500 mb-1"><span>$15,000.00 raised</span><span>100%</span></div>
+              <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full rounded-full bg-green-500" style="width:100%"></div>
+              </div>
+            </div>
+            <div class="flex justify-between text-xs text-gray-400"><span>Goal: $15,000.00</span><span>Ended Dec 15, 2025</span></div>
+          </div>
+
+          <div class="bg-white rounded-xl border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-md transition cursor-pointer flex flex-col gap-3">
+            <div class="flex items-start justify-between gap-2">
+              <h3 class="font-semibold text-gray-900 leading-tight">Indie Game Development</h3>
+              <span class="px-2 py-0.5 text-xs font-medium bg-indigo-100 text-indigo-700 rounded-full whitespace-nowrap">Active</span>
+            </div>
+            <p class="text-sm text-gray-500 line-clamp-2">A pixel-art RPG built on-chain. Funding art assets, sound design, and smart contract game mechanics.</p>
+            <div>
+              <div class="flex justify-between text-xs text-gray-500 mb-1"><span>$7,960.00 raised</span><span>80%</span></div>
+              <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full rounded-full bg-indigo-500" style="width:80%"></div>
+              </div>
+            </div>
+            <div class="flex justify-between text-xs text-gray-400"><span>Goal: $9,950.00</span><span>3d 2h left</span></div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- CAMPAIGN DETAIL — Solar -->
+      <div id="tab-solar" class="hidden max-w-2xl mx-auto">
+        <button onclick="showDetail('browse-back')" class="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 mb-6 transition">← Back to campaigns</button>
+        <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
+          <div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-1">Solar Panel Community Project</h2>
+            <p class="text-sm text-gray-400">by 0x4Fc2...aB71</p>
+          </div>
+          <p class="text-gray-600">Funding rooftop solar panels for the Eastside Community Center to cut energy costs and go green. Any unmet goal by the deadline will be fully refunded to donors.</p>
+          <div>
+            <div class="flex justify-between text-sm mb-1">
+              <span class="font-semibold text-gray-900">$6,500.00 raised</span>
+              <span class="text-gray-500">65% of $10,000.00</span>
+            </div>
+            <div class="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+              <div class="h-full rounded-full bg-indigo-500" style="width:65%"></div>
+            </div>
+            <p class="text-xs text-gray-400 mt-1 text-right">12d 3h left</p>
+          </div>
+          <div class="bg-indigo-50 rounded-lg px-4 py-3 text-sm text-indigo-700">
+            You have donated <strong>$250.00</strong> to this campaign.
+          </div>
+          <form class="flex gap-3" onsubmit="return false">
+            <input type="number" placeholder="Amount in USDC" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <button class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition">Donate</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- CAMPAIGN DETAIL — OSS (creator view) -->
+      <div id="tab-oss" class="hidden max-w-2xl mx-auto">
+        <button onclick="showDetail('browse-back')" class="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 mb-6 transition">← Back to campaigns</button>
+        <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
+          <div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-1">Open Source Dev Tooling</h2>
+            <p class="text-sm text-gray-400">by 0x1A2b...9F3c <span class="ml-2 text-indigo-600 font-medium text-xs">(you)</span></p>
+          </div>
+          <p class="text-gray-600">Building a suite of open-source developer tools for Solidity smart contract testing and deployment automation.</p>
+          <div>
+            <div class="flex justify-between text-sm mb-1">
+              <span class="font-semibold text-gray-900">$5,340.00 raised</span>
+              <span class="text-gray-500">107% of $5,000.00</span>
+            </div>
+            <div class="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+              <div class="h-full rounded-full bg-green-500" style="width:100%"></div>
+            </div>
+            <p class="text-xs text-gray-400 mt-1 text-right">5d left</p>
+          </div>
+          <button class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 rounded-lg transition text-sm">
+            Withdraw $5,340.00
+          </button>
+        </div>
+      </div>
+
+      <!-- CREATE CAMPAIGN -->
+      <div id="tab-create" class="hidden max-w-xl mx-auto">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Create a Campaign</h2>
+        <form class="bg-white rounded-xl border border-gray-200 p-6 space-y-5" onsubmit="return false">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Campaign Name</label>
+            <input type="text" value="My Awesome Campaign" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <textarea rows="4" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none">Describe your campaign and how the funds will be used...</textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Goal Amount (USDC)</label>
+            <input type="number" value="5000" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Deadline</label>
+            <input type="date" value="2026-04-01" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+          <button class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition text-sm">
+            Create Campaign
+          </button>
+        </form>
+      </div>
+
+      <!-- MY CAMPAIGNS -->
+      <div id="tab-mine" class="hidden">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-bold text-gray-900">My Campaigns</h2>
+          <button class="text-sm text-indigo-600 hover:underline">Refresh</button>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div class="bg-white rounded-xl border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-md transition cursor-pointer flex flex-col gap-3">
+            <div class="flex items-start justify-between gap-2">
+              <h3 class="font-semibold text-gray-900 leading-tight">Open Source Dev Tooling</h3>
+              <span class="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full whitespace-nowrap">Goal Met</span>
+            </div>
+            <p class="text-sm text-gray-500 line-clamp-2">Building a suite of open-source developer tools for Solidity smart contract testing and deployment automation.</p>
+            <div>
+              <div class="flex justify-between text-xs text-gray-500 mb-1"><span>$5,340.00 raised</span><span>107%</span></div>
+              <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full rounded-full bg-green-500" style="width:100%"></div>
+              </div>
+            </div>
+            <div class="flex justify-between text-xs text-gray-400"><span>Goal: $5,000.00</span><span>5d left</span></div>
+          </div>
+          <div class="bg-white rounded-xl border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-md transition cursor-pointer flex flex-col gap-3">
+            <div class="flex items-start justify-between gap-2">
+              <h3 class="font-semibold text-gray-900 leading-tight">Indie Game Development</h3>
+              <span class="px-2 py-0.5 text-xs font-medium bg-indigo-100 text-indigo-700 rounded-full whitespace-nowrap">Active</span>
+            </div>
+            <p class="text-sm text-gray-500 line-clamp-2">A pixel-art RPG built on-chain. Funding art assets, sound design, and smart contract game mechanics.</p>
+            <div>
+              <div class="flex justify-between text-xs text-gray-500 mb-1"><span>$7,960.00 raised</span><span>80%</span></div>
+              <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full rounded-full bg-indigo-500" style="width:80%"></div>
+              </div>
+            </div>
+            <div class="flex justify-between text-xs text-gray-400"><span>Goal: $9,950.00</span><span>3d 2h left</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MY DONATIONS -->
+      <div id="tab-donated" class="hidden">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-bold text-gray-900">My Donations</h2>
+          <button class="text-sm text-indigo-600 hover:underline">Refresh</button>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div class="bg-white rounded-xl border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-md transition cursor-pointer flex flex-col gap-3">
+            <div class="flex items-start justify-between gap-2">
+              <h3 class="font-semibold text-gray-900 leading-tight">Solar Panel Community Project</h3>
+              <span class="px-2 py-0.5 text-xs font-medium bg-indigo-100 text-indigo-700 rounded-full whitespace-nowrap">Active</span>
+            </div>
+            <p class="text-sm text-gray-500 line-clamp-2">Funding rooftop solar panels for the Eastside Community Center to cut energy costs and go green.</p>
+            <div>
+              <div class="flex justify-between text-xs text-gray-500 mb-1"><span>$6,500.00 raised</span><span>65%</span></div>
+              <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full rounded-full bg-indigo-500" style="width:65%"></div>
+              </div>
+            </div>
+            <div class="flex justify-between text-xs text-gray-400"><span>Goal: $10,000.00</span><span>12d 3h left</span></div>
+          </div>
+          <div class="bg-white rounded-xl border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-md transition cursor-pointer flex flex-col gap-3">
+            <div class="flex items-start justify-between gap-2">
+              <h3 class="font-semibold text-gray-900 leading-tight">NFT Art Exhibition</h3>
+              <span class="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-600 rounded-full whitespace-nowrap">Expired</span>
+            </div>
+            <p class="text-sm text-gray-500 line-clamp-2">A physical + digital art show featuring 20 emerging Web3 artists. Venue, printing, and logistics costs.</p>
+            <div>
+              <div class="flex justify-between text-xs text-gray-500 mb-1"><span>$3,375.00 raised</span><span>45%</span></div>
+              <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full rounded-full bg-indigo-500" style="width:45%"></div>
+              </div>
+            </div>
+            <div class="flex justify-between text-xs text-gray-400"><span>Goal: $7,500.00</span><span>Ended Jan 31, 2026</span></div>
+          </div>
+          <div class="sm:col-span-2 lg:col-span-3">
+            <div class="bg-orange-50 border border-orange-200 rounded-xl px-5 py-4 flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-orange-800">Refund available on NFT Art Exhibition</p>
+                <p class="text-xs text-orange-600 mt-0.5">The campaign expired without reaching its goal. You can claim your $500.00 back.</p>
+              </div>
+              <button class="bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition whitespace-nowrap ml-4">
+                Claim Refund
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <!-- end dashboard -->
+
+  </main>
+
+  <script>
+    const TABS = ['browse', 'create', 'mine', 'donated', 'solar', 'oss'];
+    let connected = false;
+
+    function connectWallet() {
+      connected = true;
+      document.getElementById('page-landing').classList.add('hidden');
+      document.getElementById('page-dashboard').classList.remove('hidden');
+      document.getElementById('nav').classList.remove('hidden');
+      document.getElementById('btn-connect').classList.add('hidden');
+      document.getElementById('btn-address').classList.remove('hidden');
+      switchTab('browse');
+    }
+
+    function disconnectWallet() {
+      connected = false;
+      document.getElementById('page-dashboard').classList.add('hidden');
+      document.getElementById('page-landing').classList.remove('hidden');
+      document.getElementById('nav').classList.add('hidden');
+      document.getElementById('btn-connect').classList.remove('hidden');
+      document.getElementById('btn-address').classList.add('hidden');
+    }
+
+    function goHome() {
+      if (!connected) return;
+      switchTab('browse');
+    }
+
+    function switchTab(id) {
+      TABS.forEach(t => document.getElementById('tab-' + t)?.classList.add('hidden'));
+      document.getElementById('tab-' + id)?.classList.remove('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('border-indigo-600', 'text-indigo-600');
+        btn.classList.add('border-transparent', 'text-gray-500');
+      });
+      const map = { browse: 0, create: 1, mine: 2, donated: 3 };
+      if (map[id] !== undefined) {
+        const btn = document.querySelectorAll('.nav-btn')[map[id]];
+        btn.classList.add('border-indigo-600', 'text-indigo-600');
+        btn.classList.remove('border-transparent', 'text-gray-500');
+      }
+    }
+
+    function showDetail(id) {
+      if (id === 'browse-back') { switchTab('browse'); return; }
+      TABS.forEach(t => document.getElementById('tab-' + t)?.classList.add('hidden'));
+      document.getElementById('tab-' + id)?.classList.remove('hidden');
+    }
+
+    // Init nav styles
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+      btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-900');
+    });
+  </script>
+
+</body>
+</html>

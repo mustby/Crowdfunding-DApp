@@ -16,10 +16,16 @@ contract DeployScript is Script {
         vm.startBroadcast();
 
         MockUSDC usdc = new MockUSDC();
-        FundraiserFactory factory = new FundraiserFactory(address(usdc));
+        FundraiserFactory factory = new FundraiserFactory(
+            address(usdc),
+            msg.sender, // feeRecipient = deployer wallet
+            250 // 2.5%
+        );
 
         console.log("MockUSDC deployed at:       ", address(usdc));
         console.log("FundraiserFactory deployed at:", address(factory));
+        console.log("Fee recipient:              ", msg.sender);
+        console.log("Fee (bps):                  ", factory.feeBps());
 
         vm.stopBroadcast();
     }

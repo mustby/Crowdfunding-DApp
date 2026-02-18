@@ -14,14 +14,16 @@ contract FundraiserTest is Test {
     address public creator = makeAddr("creator");
     address public donor1 = makeAddr("donor1");
     address public donor2 = makeAddr("donor2");
+    address public feeRecipient = makeAddr("feeRecipient");
 
     uint256 public constant GOAL = 1000e6; // 1,000 USDC
     uint256 public constant DURATION = 30 days;
     uint256 public constant INITIAL_BALANCE = 5000e6; // 5,000 USDC per donor
+    uint256 public constant FEE_BPS = 250; // 2.5%
 
     function setUp() public {
         usdc = new MockUSDC();
-        factory = new FundraiserFactory(address(usdc));
+        factory = new FundraiserFactory(address(usdc), feeRecipient, FEE_BPS);
 
         // Fund donors
         usdc.mint(donor1, INITIAL_BALANCE);
@@ -77,13 +79,59 @@ contract FundraiserTest is Test {
         vm.prank(donor1);
         fundraiser.donate(GOAL);
 
-        uint256 before = usdc.balanceOf(creator);
+        uint256 fee = (GOAL * FEE_BPS) / 10_000; // 25 USDC
+        uint256 creatorAmount = GOAL - fee; // 975 USDC
+
+        uint256 creatorBefore = usdc.balanceOf(creator);
+        uint256 feeBefore = usdc.balanceOf(feeRecipient);
+
         vm.prank(creator);
         fundraiser.withdraw();
 
-        assertEq(usdc.balanceOf(creator), before + GOAL);
+        assertEq(usdc.balanceOf(creator), creatorBefore + creatorAmount);
+        assertEq(usdc.balanceOf(feeRecipient), feeBefore + fee);
         assertEq(usdc.balanceOf(address(fundraiser)), 0);
         assertTrue(fundraiser.withdrawn());
+    }
+
+    function test_WithdrawDeductsFee() public {
+        vm.prank(donor1);
+        fundraiser.donate(GOAL);
+
+        // 2.5% of 1000 USDC = 25 USDC fee, 975 USDC to creator
+        uint256 expectedFee = 25e6;
+        uint256 expectedCreatorAmount = 975e6;
+
+        vm.prank(creator);
+        fundraiser.withdraw();
+
+        assertEq(usdc.balanceOf(feeRecipient), expectedFee);
+        assertEq(usdc.balanceOf(creator), expectedCreatorAmount);
+        assertEq(usdc.balanceOf(address(fundraiser)), 0);
+    }
+
+    function test_WithdrawZeroFee() public {
+        // Deploy a new factory + campaign with zero fee
+        FundraiserFactory zeroFeeFactory = new FundraiserFactory(address(usdc), feeRecipient, 0);
+        vm.prank(creator);
+        address addr = zeroFeeFactory.createFundraiser("Zero Fee Campaign", "No fee", GOAL, block.timestamp + DURATION);
+        Fundraiser zeroFeeFundraiser = Fundraiser(addr);
+
+        vm.prank(donor1);
+        usdc.approve(address(zeroFeeFundraiser), type(uint256).max);
+        vm.prank(donor1);
+        zeroFeeFundraiser.donate(GOAL);
+
+        uint256 creatorBefore = usdc.balanceOf(creator);
+        uint256 feeRecipientBefore = usdc.balanceOf(feeRecipient);
+
+        vm.prank(creator);
+        zeroFeeFundraiser.withdraw();
+
+        // Creator gets 100%, no transfer to feeRecipient
+        assertEq(usdc.balanceOf(creator), creatorBefore + GOAL);
+        assertEq(usdc.balanceOf(feeRecipient), feeRecipientBefore);
+        assertEq(usdc.balanceOf(address(zeroFeeFundraiser)), 0);
     }
 
     function test_RevertWithdraw_NotCreator() public {
@@ -302,6 +350,47 @@ contract FundraiserTest is Test {
         assertEq(factory.getFundraisers().length, 2);
     }
 
+    function test_Factory_SetFeeBps() public {
+        // Owner updates fee to 500 bps (5%)
+        factory.setFeeBps(500);
+        assertEq(factory.feeBps(), 500);
+
+        // New campaign uses the updated fee
+        vm.prank(creator);
+        address addr = factory.createFundraiser("New Campaign", "With 5% fee", GOAL, block.timestamp + DURATION);
+        Fundraiser newFundraiser = Fundraiser(addr);
+        assertEq(newFundraiser.feeBps(), 500);
+
+        // Original campaign still has the old fee
+        assertEq(fundraiser.feeBps(), FEE_BPS);
+    }
+
+    function test_RevertFactory_SetFeeBps_NotOwner() public {
+        vm.prank(donor1);
+        vm.expectRevert(FundraiserFactory.NotOwner.selector);
+        factory.setFeeBps(100);
+    }
+
+    function test_RevertFactory_SetFeeBps_TooHigh() public {
+        vm.expectRevert(FundraiserFactory.FeeTooHigh.selector);
+        factory.setFeeBps(1001);
+    }
+
+    function test_Factory_TransferOwnership() public {
+        address newOwner = makeAddr("newOwner");
+        factory.transferOwnership(newOwner);
+        assertEq(factory.owner(), newOwner);
+
+        // New owner can set fee
+        vm.prank(newOwner);
+        factory.setFeeBps(100);
+        assertEq(factory.feeBps(), 100);
+
+        // Old owner (test contract) can no longer call admin functions
+        vm.expectRevert(FundraiserFactory.NotOwner.selector);
+        factory.setFeeBps(200);
+    }
+
     // -------------------------------------------------------------------------
     // View helpers
     // -------------------------------------------------------------------------
@@ -325,11 +414,11 @@ contract FundraiserTest is Test {
 
     function test_RevertDeploy_ZeroGoal() public {
         vm.expectRevert(Fundraiser.InvalidGoal.selector);
-        new Fundraiser(address(usdc), creator, "X", "Y", 0, block.timestamp + 1 days);
+        new Fundraiser(address(usdc), creator, "X", "Y", 0, block.timestamp + 1 days, feeRecipient, FEE_BPS);
     }
 
     function test_RevertDeploy_DeadlineInPast() public {
         vm.expectRevert(Fundraiser.InvalidDeadline.selector);
-        new Fundraiser(address(usdc), creator, "X", "Y", GOAL, block.timestamp - 1);
+        new Fundraiser(address(usdc), creator, "X", "Y", GOAL, block.timestamp - 1, feeRecipient, FEE_BPS);
     }
 }

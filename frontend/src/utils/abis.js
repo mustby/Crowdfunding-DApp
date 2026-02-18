@@ -3,7 +3,17 @@ export const FACTORY_ABI = [
   'function getFundraisers() view returns (address[])',
   'function getFundraiserCount() view returns (uint256)',
   'function fundraisers(uint256) view returns (address)',
+  'function owner() view returns (address)',
+  'function feeRecipient() view returns (address)',
+  'function feeBps() view returns (uint256)',
+  'function MAX_FEE_BPS() view returns (uint256)',
+  'function setFeeBps(uint256 _feeBps)',
+  'function setFeeRecipient(address _feeRecipient)',
+  'function transferOwnership(address newOwner)',
   'event FundraiserCreated(address indexed fundraiser, address indexed creator, string name, uint256 goalAmount, uint256 deadline)',
+  'event FeeUpdated(uint256 newFeeBps)',
+  'event FeeRecipientUpdated(address newRecipient)',
+  'event OwnerTransferred(address newOwner)',
 ];
 
 export const FUNDRAISER_ABI = [
@@ -17,6 +27,8 @@ export const FUNDRAISER_ABI = [
   'function cancelled() view returns (bool)',
   'function donations(address) view returns (uint256)',
   'function usdc() view returns (address)',
+  'function feeRecipient() view returns (address)',
+  'function feeBps() view returns (uint256)',
   'function isGoalMet() view returns (bool)',
   'function isExpired() view returns (bool)',
   'function donate(uint256 amount)',

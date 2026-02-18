@@ -28,6 +28,9 @@ contract Fundraiser {
     uint256 public immutable goalAmount;
     uint256 public immutable deadline;
 
+    address public immutable feeRecipient;
+    uint256 public immutable feeBps;
+
     uint256 public totalRaised;
     bool public withdrawn;
     bool public cancelled;
@@ -69,7 +72,9 @@ contract Fundraiser {
         string memory _name,
         string memory _description,
         uint256 _goalAmount,
-        uint256 _deadline
+        uint256 _deadline,
+        address _feeRecipient,
+        uint256 _feeBps
     ) {
         if (_goalAmount == 0) revert InvalidGoal();
         if (_deadline <= block.timestamp) revert InvalidDeadline();
@@ -80,6 +85,8 @@ contract Fundraiser {
         description = _description;
         goalAmount = _goalAmount;
         deadline = _deadline;
+        feeRecipient = _feeRecipient;
+        feeBps = _feeBps;
     }
 
     // -------------------------------------------------------------------------
@@ -101,6 +108,7 @@ contract Fundraiser {
     }
 
     /// @notice Creator withdraws all funds once the goal is met.
+    ///         A platform fee (feeBps) is deducted and sent to feeRecipient.
     ///         Can be called at any time after the goal is reached, unless cancelled.
     function withdraw() external {
         if (msg.sender != creator) revert NotCreator();
@@ -109,11 +117,13 @@ contract Fundraiser {
         if (withdrawn) revert AlreadyWithdrawn();
 
         withdrawn = true;
-        uint256 amount = totalRaised;
+        uint256 fee = (totalRaised * feeBps) / 10_000;
+        uint256 creatorAmount = totalRaised - fee;
 
-        usdc.transfer(creator, amount);
+        if (fee > 0) usdc.transfer(feeRecipient, fee);
+        usdc.transfer(creator, creatorAmount);
 
-        emit Withdrawn(creator, amount);
+        emit Withdrawn(creator, creatorAmount);
     }
 
     /// @notice Creator cancels the campaign, immediately unlocking refunds for all donors.

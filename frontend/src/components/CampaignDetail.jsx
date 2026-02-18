@@ -19,12 +19,12 @@ export default function CampaignDetail({ address, onBack }) {
       const c = new ethers.Contract(address, FUNDRAISER_ABI, provider);
       const [
         name, description, creator, goalAmount, deadline,
-        totalRaised, withdrawn, cancelled, goalMet, expired, usdcAddr,
+        totalRaised, withdrawn, cancelled, goalMet, expired, usdcAddr, feeBps,
       ] = await Promise.all([
         c.name(), c.description(), c.creator(), c.goalAmount(), c.deadline(),
-        c.totalRaised(), c.withdrawn(), c.cancelled(), c.isGoalMet(), c.isExpired(), c.usdc(),
+        c.totalRaised(), c.withdrawn(), c.cancelled(), c.isGoalMet(), c.isExpired(), c.usdc(), c.feeBps(),
       ]);
-      setCampaign({ address, name, description, creator, goalAmount, deadline, totalRaised, withdrawn, cancelled, goalMet, expired, usdcAddr });
+      setCampaign({ address, name, description, creator, goalAmount, deadline, totalRaised, withdrawn, cancelled, goalMet, expired, usdcAddr, feeBps });
 
       if (account) {
         setMyDonation(await c.donations(account));
@@ -223,13 +223,25 @@ export default function CampaignDetail({ address, onBack }) {
 
         {/* Creator withdraw */}
         {canWithdraw && (
-          <button
-            onClick={handleWithdraw}
-            disabled={loading}
-            className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-medium py-2.5 rounded-lg transition text-sm"
-          >
-            {loading ? 'Withdrawing...' : `Withdraw $${formatUSDC(campaign.totalRaised)}`}
-          </button>
+          <div className="space-y-2">
+            <div className="bg-gray-50 rounded-lg px-4 py-3 text-sm text-gray-600 space-y-1">
+              <div className="flex justify-between">
+                <span>Platform fee ({Number(campaign.feeBps) / 100}%)</span>
+                <span className="text-gray-500">-${formatUSDC((campaign.totalRaised * campaign.feeBps) / 10000n)}</span>
+              </div>
+              <div className="flex justify-between font-semibold text-gray-900">
+                <span>You will receive</span>
+                <span>${formatUSDC(campaign.totalRaised - (campaign.totalRaised * campaign.feeBps) / 10000n)}</span>
+              </div>
+            </div>
+            <button
+              onClick={handleWithdraw}
+              disabled={loading}
+              className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-medium py-2.5 rounded-lg transition text-sm"
+            >
+              {loading ? 'Withdrawing...' : `Withdraw $${formatUSDC(campaign.totalRaised - (campaign.totalRaised * campaign.feeBps) / 10000n)}`}
+            </button>
+          </div>
         )}
 
         {/* Donor refund */}

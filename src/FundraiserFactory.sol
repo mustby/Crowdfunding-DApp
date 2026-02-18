@@ -13,6 +13,16 @@ contract FundraiserFactory {
     address public immutable usdc;
     address[] public fundraisers;
 
+    address public owner;
+    address public feeRecipient;
+    uint256 public feeBps;
+
+    // -------------------------------------------------------------------------
+    // Constants
+    // -------------------------------------------------------------------------
+
+    uint256 public constant MAX_FEE_BPS = 1000; // 10% hard cap
+
     // -------------------------------------------------------------------------
     // Events
     // -------------------------------------------------------------------------
@@ -20,20 +30,41 @@ contract FundraiserFactory {
     event FundraiserCreated(
         address indexed fundraiser, address indexed creator, string name, uint256 goalAmount, uint256 deadline
     );
+    event FeeUpdated(uint256 newFeeBps);
+    event FeeRecipientUpdated(address newRecipient);
+    event OwnerTransferred(address newOwner);
 
     // -------------------------------------------------------------------------
     // Errors
     // -------------------------------------------------------------------------
 
     error InvalidUSDC();
+    error NotOwner();
+    error FeeTooHigh();
+    error ZeroAddress();
 
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
 
-    constructor(address _usdc) {
+    constructor(address _usdc, address _feeRecipient, uint256 _feeBps) {
         if (_usdc == address(0)) revert InvalidUSDC();
+        if (_feeRecipient == address(0)) revert ZeroAddress();
+        if (_feeBps > MAX_FEE_BPS) revert FeeTooHigh();
+
         usdc = _usdc;
+        owner = msg.sender;
+        feeRecipient = _feeRecipient;
+        feeBps = _feeBps;
+    }
+
+    // -------------------------------------------------------------------------
+    // Modifiers
+    // -------------------------------------------------------------------------
+
+    modifier onlyOwner() {
+        if (msg.sender != owner) revert NotOwner();
+        _;
     }
 
     // -------------------------------------------------------------------------
@@ -50,13 +81,35 @@ contract FundraiserFactory {
         external
         returns (address)
     {
-        Fundraiser fundraiser = new Fundraiser(usdc, msg.sender, name, description, goalAmount, deadline);
+        Fundraiser fundraiser =
+            new Fundraiser(usdc, msg.sender, name, description, goalAmount, deadline, feeRecipient, feeBps);
 
         fundraisers.push(address(fundraiser));
 
         emit FundraiserCreated(address(fundraiser), msg.sender, name, goalAmount, deadline);
 
         return address(fundraiser);
+    }
+
+    /// @notice Update the platform fee in basis points (owner only).
+    function setFeeBps(uint256 _feeBps) external onlyOwner {
+        if (_feeBps > MAX_FEE_BPS) revert FeeTooHigh();
+        feeBps = _feeBps;
+        emit FeeUpdated(_feeBps);
+    }
+
+    /// @notice Update the fee recipient address (owner only).
+    function setFeeRecipient(address _feeRecipient) external onlyOwner {
+        if (_feeRecipient == address(0)) revert ZeroAddress();
+        feeRecipient = _feeRecipient;
+        emit FeeRecipientUpdated(_feeRecipient);
+    }
+
+    /// @notice Transfer factory ownership (owner only).
+    function transferOwnership(address newOwner) external onlyOwner {
+        if (newOwner == address(0)) revert ZeroAddress();
+        owner = newOwner;
+        emit OwnerTransferred(newOwner);
     }
 
     // -------------------------------------------------------------------------

@@ -15,7 +15,7 @@ contract FundraiserTest is Test {
     address public donor1 = makeAddr("donor1");
     address public donor2 = makeAddr("donor2");
 
-    uint256 public constant GOAL = 1000e6;          // 1,000 USDC
+    uint256 public constant GOAL = 1000e6; // 1,000 USDC
     uint256 public constant DURATION = 30 days;
     uint256 public constant INITIAL_BALANCE = 5000e6; // 5,000 USDC per donor
 
@@ -29,12 +29,7 @@ contract FundraiserTest is Test {
 
         // Creator deploys a campaign via the factory
         vm.prank(creator);
-        address addr = factory.createFundraiser(
-            "Test Campaign",
-            "A test fundraiser",
-            GOAL,
-            block.timestamp + DURATION
-        );
+        address addr = factory.createFundraiser("Test Campaign", "A test fundraiser", GOAL, block.timestamp + DURATION);
         fundraiser = Fundraiser(addr);
 
         // Donors approve the fundraiser contract

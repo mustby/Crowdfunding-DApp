@@ -18,11 +18,7 @@ contract FundraiserFactory {
     // -------------------------------------------------------------------------
 
     event FundraiserCreated(
-        address indexed fundraiser,
-        address indexed creator,
-        string name,
-        uint256 goalAmount,
-        uint256 deadline
+        address indexed fundraiser, address indexed creator, string name, uint256 goalAmount, uint256 deadline
     );
 
     // -------------------------------------------------------------------------
@@ -50,20 +46,11 @@ contract FundraiserFactory {
     /// @param goalAmount  Target amount in USDC (6 decimals).
     /// @param deadline    Unix timestamp after which no more donations are accepted.
     /// @return Address of the newly deployed Fundraiser contract.
-    function createFundraiser(
-        string memory name,
-        string memory description,
-        uint256 goalAmount,
-        uint256 deadline
-    ) external returns (address) {
-        Fundraiser fundraiser = new Fundraiser(
-            usdc,
-            msg.sender,
-            name,
-            description,
-            goalAmount,
-            deadline
-        );
+    function createFundraiser(string memory name, string memory description, uint256 goalAmount, uint256 deadline)
+        external
+        returns (address)
+    {
+        Fundraiser fundraiser = new Fundraiser(usdc, msg.sender, name, description, goalAmount, deadline);
 
         fundraisers.push(address(fundraiser));
 

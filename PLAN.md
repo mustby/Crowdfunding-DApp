@@ -1,4 +1,4 @@
-# PLAN.md — Crowdfunding DApp
+# PLAN.md — OpenRaise
 
 ## Development Milestones
 

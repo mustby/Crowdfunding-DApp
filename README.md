@@ -1,4 +1,4 @@
-# Crowdfunding DApp
+# OpenRaise
 
 ## Description
 

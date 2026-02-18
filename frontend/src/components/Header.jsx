@@ -22,7 +22,7 @@ export default function Header({ view, setView }) {
             className="text-xl font-bold text-indigo-600 cursor-pointer"
             onClick={() => setView('browse')}
           >
-            Crowdfund DApp
+            OpenRaise
           </span>
 
           <div className="flex items-center gap-3">
